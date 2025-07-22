@@ -6,9 +6,9 @@ import jwt from "jsonwebtoken";
 
 export const loginUser = async(req: NextRequest) => {
   try {
-    const { name, password } = await req.json();
+    const { uniqueId, password } = await req.json();
 
-    const user = await prisma.user.findFirst({ where: { name } });
+    const user = await prisma.user.findUnique({ where: { uniqueId } });
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
