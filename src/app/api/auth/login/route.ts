@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 
-export const loginUser = async(req: NextRequest) => {
+export async function POST(req: NextRequest) {
   try {
     const { uniqueId, password } = await req.json();
 

@@ -34,9 +34,9 @@ export default function CommonSIdebar() {
   };
 
   return (
-    <aside className="h-screen w-64 shadow-md border-r p-4 flex flex-col justify-between bg-sidebar-light dark:bg-sidebar-dark text-gray-900 dark:text-gray-100">
+    <aside className="h-screen w-64 shadow-md border-r p-4 flex flex-col justify-between bg-background text-foreground">
       <div>
-        <div className="text-2xl font-semibold ml-4 mb-6 text-primary-light dark:text-primary-dark">
+        <div className="text-2xl font-semibold ml-4 mb-6 text-primary">
           Cloth Tracker
         </div>
         <nav className="space-y-2">
@@ -45,10 +45,10 @@ export default function CommonSIdebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center px-4 py-2 rounded-md hover:bg-primary-light/10 dark:hover:bg-primary-dark/20 transition",
+                "flex items-center px-4 py-2 rounded-md hover:bg-primary/10 dark:hover:bg-primary-dark/20 transition",
                 pathname === item.href
-                  ? "font-medium text-primary-light dark:text-primary-dark bg-primary-light/20 dark:bg-primary-dark/30"
-                  : "text-gray-700 dark:text-gray-300"
+                  ? "font-medium text-primary bg-primary/20"
+                  : "text-muted-foreground"
               )}
             >
               {item.name}
@@ -59,7 +59,7 @@ export default function CommonSIdebar() {
 
       <Button
         onClick={handleLogout}
-        className="w-56 bg-primary-light dark:bg-primary-dark text-white hover:opacity-90 transition"
+        className="w-56 bg-primary text-primary-foreground hover:opacity-90 transition"
       >
         Logout
       </Button>
