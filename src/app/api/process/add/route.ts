@@ -3,14 +3,20 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
     try {
-        const { name, shortForm, userPhones, targetDays } = await req.json();
+        const { name, shortForm, userUniqueIds, targetDays } = await req.json();
 
         const existingProcess = await prisma.process.findFirst({ where: {name} });
         if (existingProcess) {
             return NextResponse.json({ message: "Process with this name already exists" }, { status: 400 });
         }
 
-        const users = await prisma.user.findMany({ where: { phoneNo: {in: userPhones} } });
+        const users = await prisma.user.findMany({ 
+            where: { 
+                uniqueId: {
+                    in: userUniqueIds
+                } 
+            } 
+        });
 
         if(users.length === 0) {
             return NextResponse.json({ message: "No valid users found" }, { status: 404 });
@@ -29,7 +35,10 @@ export async function POST(req: NextRequest) {
 
         for (const user of users) {
             await prisma.typeOfWork.create({
-                data: { userId: user.id, value: name}
+                data: { 
+                    userId: user.id, 
+                    value: name
+                }
             })
         }
 

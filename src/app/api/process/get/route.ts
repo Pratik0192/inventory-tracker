@@ -7,7 +7,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         concernedDept: {
-          select: { id: true, name: true, phoneNo: true, email: true, role: true },
+          select: { id: true, name: true, uniqueId: true, phoneNo: true, email: true, role: true },
         },
       },
     });

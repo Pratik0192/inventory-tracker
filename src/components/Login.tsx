@@ -50,17 +50,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark px-4 transition-colors duration-300">
-      <Card className="w-full max-w-md shadow-xl bg-white dark:bg-sidebar-dark border dark:border-gray-700">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 transition-colors duration-300">
+      <Card className="w-full max-w-md shadow-xl bg-card border border-border text-card-foreground">
         <CardHeader>
-          <CardTitle className="text-center text-2xl text-primary-light dark:text-gray-200">
+          <CardTitle className="text-center text-2xl text-primary">
             Login
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="uniqueId" className="dark:text-white">
+              <Label htmlFor="uniqueId" className="text-foreground">
                 Unique ID
               </Label>
               <Input
@@ -70,11 +70,11 @@ export default function Login() {
                 onChange={(e) => setUniqueId(e.target.value)}
                 required
                 placeholder="Enter your Unique ID"
-                className="dark:bg-sidebar-dark dark:border-gray-700 dark:text-white"
+                className="bg-background border border-border text-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="dark:text-white">
+              <Label htmlFor="password" className="text-foreground">
                 Password
               </Label>
               <Input
@@ -84,12 +84,12 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
-                className="dark:bg-sidebar-dark dark:border-gray-700 dark:text-white"
+                className="bg-background border border-border text-foreground"
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-primary-light dark:bg-primary-dark text-white hover:opacity-90 transition"
+              className="w-full bg-primary text-primary-foreground hover:opacity-90 transition"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}

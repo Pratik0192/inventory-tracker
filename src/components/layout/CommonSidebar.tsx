@@ -17,6 +17,7 @@ export default function CommonSIdebar() {
     { name: "Size Master", href: "/common/size" },
     { name: "Unit Master", href: "/common/unit" },
     { name: "Vendor Master", href: "/common/vendor" },
+    { name: "Process Master", href: "/common/process" },
     { name: "Component Master", href: "/common/component" },
     { name: "Responsibility Master", href: "/common/responsibility" },
   ];
