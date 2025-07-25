@@ -8,6 +8,7 @@ export async function GET() {
       select:{
         id: true,
         name: true,
+        typeOfWork: true,
         phoneNo: true,
         email: true,
         address: true,

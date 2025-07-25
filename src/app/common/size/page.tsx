@@ -41,7 +41,6 @@ export default function SizeMaster() {
   const handleNameChange = (value: string) => {
     setName(value);
 
-    // Match any two numbers separated by a non-digit character
     const match = value.match(/^(\d+)[^\d]?(\d+)$/);
     if (match) {
       const low = parseInt(match[1], 10);

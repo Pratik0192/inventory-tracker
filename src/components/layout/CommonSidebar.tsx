@@ -13,9 +13,12 @@ export default function CommonSIdebar() {
 
   const navItems = [
     { name: "Dashboard", href: "/common" },
-    { name: "Size Master", href: "/common/size" },
     { name: "Design Master", href: "/common/design" },
+    { name: "Size Master", href: "/common/size" },
+    { name: "Unit Master", href: "/common/unit" },
+    { name: "Vendor Master", href: "/common/vendor" },
     { name: "Component Master", href: "/common/component" },
+    { name: "Responsibility Master", href: "/common/responsibility" },
   ];
 
   const handleLogout = async () => {
