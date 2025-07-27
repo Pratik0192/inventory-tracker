@@ -8,17 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-type Vendor = {
-  id: number;
-  name: string;
-  phoneNo: string;
-  email: string | null;
-  address: string | null;
-  uniqueId: string;
-  role: string;
-  status: string;
-};
+import { Vendor } from "@/types";
 
 export default function VendorMaster() {
 
