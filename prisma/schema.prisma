@@ -20,7 +20,7 @@ model User {
   password     String
   phoneNo      String               @unique
   uniqueId     String?              @unique
-  typeOfWork   TypeOfWork[] // multiple work types
+  typeOfWork   TypeOfWork[]
   address      String               @default("")
   email        String               @default("")
   role         UserRole             @default(VENDOR)
@@ -37,14 +37,14 @@ model UserPagePermission {
   user   User @relation(fields: [userId], references: [id])
   userId Int
 
-  page    String // e.g., "inventory", "orders", "analytics"
+  page    String 
   canView Boolean @default(false)
   canEdit Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, page]) // avoid duplicates
+  @@unique([userId, page])
 }
 
 enum UserRole {
