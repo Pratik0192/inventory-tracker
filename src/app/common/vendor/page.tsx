@@ -139,6 +139,7 @@ export default function VendorMaster() {
             <TableHeader className="bg-muted">
               <TableRow>
                 <TableHead className="w-10">#</TableHead>
+                <TableHead>Unique Id</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Email</TableHead>
@@ -151,6 +152,7 @@ export default function VendorMaster() {
                 vendors.map((vendor, index) => (
                   <TableRow key={vendor.id}>
                     <TableCell>{index + 1}</TableCell>
+                    <TableCell>{vendor.uniqueId}</TableCell>
                     <TableCell className="capitalize">{vendor.name}</TableCell>
                     <TableCell>{vendor.phoneNo}</TableCell>
                     <TableCell>{vendor.email || "-"}</TableCell>

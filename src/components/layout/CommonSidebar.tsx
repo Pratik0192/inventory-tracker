@@ -6,21 +6,38 @@ import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export default function CommonSIdebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [role, setRole] = useState<"ADMIN" | "VENDOR" | null>(null);
 
   const navItems = [
-    { name: "Dashboard", href: "/common" },
-    { name: "Design Master", href: "/common/design" },
-    { name: "Size Master", href: "/common/size" },
-    { name: "Unit Master", href: "/common/unit" },
-    { name: "Vendor Master", href: "/common/vendor" },
-    { name: "Process Master", href: "/common/process" },
-    { name: "Component Master", href: "/common/component" },
-    { name: "Responsibility Master", href: "/common/responsibility" },
+    { name: "Dashboard", href: "/common", roles: ["ADMIN", "VENDOR"] },
+    { name: "Design Master", href: "/common/design", roles: ["ADMIN"] },
+    { name: "Assigned Tasks", href: "/common/assigned", roles: ["VENDOR"] },
+    { name: "Size Master", href: "/common/size", roles: ["ADMIN"] },
+    { name: "Unit Master", href: "/common/unit", roles: ["ADMIN"] },
+    { name: "Vendor Master", href: "/common/vendor", roles: ["ADMIN"] },
+    { name: "Process Master", href: "/common/process", roles: ["ADMIN"] },
+    { name: "Component Master", href: "/common/component", roles: ["ADMIN"] },
+    { name: "Responsibility Master", href: "/common/responsibility", roles: ["ADMIN"] },
   ];
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/api/auth/me");
+        setRole(res.data.user.role)
+      } catch {
+        toast.error("Session expired. Please login again.");
+        router.push("/");
+      }
+    }
+
+    fetchUser();
+  }, [router])
 
   const handleLogout = async () => {
     try {
@@ -37,6 +54,8 @@ export default function CommonSIdebar() {
     }
   };
 
+  if(!role) return null;
+
   return (
     <aside className="h-screen w-64 shadow-md border-r p-4 flex flex-col justify-between bg-background text-foreground">
       <div>
@@ -44,20 +63,22 @@ export default function CommonSIdebar() {
           Cloth Tracker
         </div>
         <nav className="space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center px-4 py-2 rounded-md hover:bg-primary/10 dark:hover:bg-primary-dark/20 transition",
-                pathname === item.href
-                  ? "font-medium text-primary bg-primary/20"
-                  : "text-muted-foreground"
-              )}
-            >
-              {item.name}
-            </Link>
-          ))}
+          {navItems
+            .filter((item) => item.roles.includes(role))
+            .map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-4 py-2 rounded-md hover:bg-primary/10 dark:hover:bg-primary-dark/20 transition",
+                  pathname === item.href
+                    ? "font-medium text-primary bg-primary/20"
+                    : "text-muted-foreground"
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
         </nav>
       </div>
 
