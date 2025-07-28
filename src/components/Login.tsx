@@ -32,7 +32,7 @@ export default function Login() {
       if (role === "ADMIN" || role === "VENDOR") {
         router.push("/common");
       } else if (role === "PROCESS_COORDINATOR") {
-        router.push("/process-coordinate");
+        router.push("/process-coordinator");
       } else {
         toast.error("Invalid user role");
       }

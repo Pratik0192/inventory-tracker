@@ -101,7 +101,7 @@ model Size {
 model Design {
   id         Int                 @id @default(autoincrement())
   designNo   String              @unique
-  sizes      DesignSize[] // Many-to-one (stores string size per row)
+  sizes      DesignSize[]
   components ComponentInDesign[]
 
   createdAt DateTime @default(now())
