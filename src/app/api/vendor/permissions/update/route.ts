@@ -1,28 +1,35 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { vendorId, permissions } = body;
+    const { uniqueId, permissions } = body;
 
-    if(!vendorId || Array.isArray(permissions)) {
+    if (!uniqueId || !Array.isArray(permissions)) {
       return NextResponse.json({ message: "Invalid request" }, { status: 400 });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { uniqueId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: "Vendor not found" }, { status: 404 });
+    }
+
     await prisma.userPagePermission.deleteMany({
-      where: { userId: parseInt(vendorId) }
+      where: { userId: user.id }
     });
 
     await prisma.userPagePermission.createMany({
       data: permissions.map((perm: { page: string; canView: boolean; canEdit: boolean }) => ({
-        userId: parseInt(vendorId),
+        userId: user.id,
         page: perm.page,
         canView: perm.canView,
         canEdit: perm.canEdit,
       })),
-    })
+    });
 
     return NextResponse.json({ message: "Permissions updated" });
   } catch (err: any) {
