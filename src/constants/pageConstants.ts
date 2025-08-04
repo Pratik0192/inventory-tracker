@@ -1,13 +1,6 @@
 export type Role = "ADMIN" | "VENDOR";
 
-export type PagePermission = {
-  name: string;
-  href: string;
-  roles: Role[];
-  key: string;
-};
-
-export const pageConstants: PagePermission[] = [
+export const pageConstants = [
   { name: "Dashboard", href: "/common", roles: ["ADMIN", "VENDOR"], key: "dashboard" },
   { name: "Design Master", href: "/common/design", roles: ["ADMIN"], key: "design_master" },
   { name: "Assigned Tasks", href: "/common/assigned", roles: ["VENDOR"], key: "assigned_tasks" },

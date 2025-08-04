@@ -26,25 +26,24 @@ model User {
   role         UserRole             @default(VENDOR)
   status       UserStatus           @default(ACTIVE)
   concernedFor Process[]            @relation("ConcernedProcesses")
-  permissions  UserPagePermission[]
+  permissions PagePermission[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model UserPagePermission {
-  id     Int  @id @default(autoincrement())
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
-
-  page    String 
-  canView Boolean @default(false)
-  canEdit Boolean @default(false)
+model PagePermission {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  page     String
+  canView  Boolean @default(false)
+  canEdit  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, page])
+  @@unique([userId, page]) // Ensure one permission per user per page
 }
 
 enum UserRole {

@@ -1,144 +1,148 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { pageConstants } from "@/constants/pageConstants";
-import api from "@/lib/axios";
-import { useState } from "react";
+import api from "@/lib/axios"
+import { pageConstants } from "@/constants/pageConstants"
+import { useEffect, useState } from "react"
 import { toast } from "sonner";
-
-type PagePermissionState = {
-  page: string;
-  canView: boolean;
-  canEdit: boolean;
-};
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function PermissionsMaster() {
-  const [uniqueId, setUniqueId] = useState<string>("");
-  const [permissions, setPermissions] = useState<PagePermissionState[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [vendors, setVendors] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const vendorPages = pageConstants.filter((page) =>
-    page.roles.includes("VENDOR")
-  );
+  const permissionPages = pageConstants.filter(
+    (page) => page.roles.includes("ADMIN") && !page.roles.includes("VENDOR")
+  )
 
-  const handleFetchPermissions = async() => {
-    try {
-      setLoading(true);
-      const res = await api.post("/vendor/permissions/get", { uniqueId });
-      const dbPermissions = res.data.data as PagePermissionState[];
-
-      const merged = pageConstants.map((pg) => {
-        const match = dbPermissions.find((perm) => perm.page === pg.key);
-        return {
-          page: pg.key,
-          canView: match?.canView ?? false,
-          canEdit: match?.canEdit ?? false,
-        };
-      });
-
-      setPermissions(merged)
-    } catch (err: any) {
-      toast.error("Failed to load permissions.");
-      console.error(err);
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleUpdatePermissions = async() => {
-    try {
-      const payload = {
-        uniqueId,
-        permissions,
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const res = await api.get("/api/permissions")
+        setVendors(res.data.vendors)
+      } catch {
+        toast.error("Failed to load vendors")
+      } finally {
+        setLoading(false)
       }
+    }
 
-      await api.put("/vendor/permissions/update", payload);
-      toast.success("Permissions updated successfully");
-    } catch (err: any) {
-      toast.error("Failed to update permissions");
-      console.error(err);
+    fetchVendors()
+  }, [])
+
+  const handlePermissionChange = async({
+    userId,
+    page,
+    field,
+    value,
+  }: {
+    userId: number
+    page: string
+    field: "canView" | "canEdit"
+    value: boolean
+  }) => {
+    try {
+      const res = await api.post("/api/permissions/update", {
+        userId,
+        page,
+        [field]: value,
+      })
+
+      setVendors((prev) =>
+        prev.map((vendor) =>
+          vendor.id === userId
+            ? {
+                ...vendor,
+                permissions: vendor.permissions.map((perm: any) =>
+                  perm.page === page
+                    ? { ...perm, [field]: value }
+                    : perm
+                ),
+              }
+            : vendor
+        )
+      )
+
+      toast.success("Permission updated")
+    } catch (error) {
+      toast.error("Failed to update permission")
     }
   }
 
-  const togglePermission = (
+  const getPermission = (
+    vendor: any,
     page: string,
-    field: "canView" | "canEdit",
-    value: boolean
+    type: "canView" | "canEdit"
   ) => {
-    setPermissions((prev) =>
-      prev.map((perm) =>
-        perm.page === page ? { ...perm, [field]: value } : perm
-      )
-    );
-  };
+    const perm = vendor.permissions.find((p: any) => p.page === page)
+    return perm ? perm[type] : false
+  }
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">Permissions Master</h2>
+      <h1 className="text-2xl font-semibold mb-4">Permissions Master</h1>
 
-      <div className="flex items-center gap-4 mb-4">
-        <Input
-          type="text"
-          placeholder="Enter Unique ID"
-          value={uniqueId}
-          onChange={(e) => setUniqueId(e.target.value)}
-          className="w-64"
-        />
-        <Button onClick={handleFetchPermissions} disabled={!uniqueId}>
-          Fetch Permissions
-        </Button>
-      </div>
-
-      {permissions.length > 0 && (
-        <Card>
-          <CardContent className="overflow-x-auto">
-            <table className="w-full table-auto mt-4 border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="p-2 text-left">Page Name</th>
-                  <th className="p-2 text-center">Can View</th>
-                  <th className="p-2 text-center">Can Edit</th>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="overflow-x-auto border rounded-lg">
+          <table className="min-w-full border-collapse">
+            <thead className="bg-gray-100 dark:bg-gray-800">
+              <tr>
+                <th className="border px-4 py-2 text-left">Vendor Name</th>
+                {permissionPages.map((page) => (
+                  <th key={page.key} colSpan={2} className="border px-4 py-2 text-center">
+                    {page.name}
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                <th className="border px-4 py-2"></th>
+                {permissionPages.map((page) => (
+                  <>
+                    <th key={page.key + "_view"} className="border px-4 py-1 text-sm">👁️</th>
+                    <th key={page.key + "_edit"} className="border px-4 py-1 text-sm">✏️</th>
+                  </>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {vendors.map((vendor) => (
+                <tr key={vendor.id}>
+                  <td className="border px-4 py-2 font-medium">{vendor.name}</td>
+                  {permissionPages.map((page) => (
+                    <>
+                      <td className="border px-4 py-2 text-center">
+                        <Checkbox
+                          checked={getPermission(vendor, page.key, "canView")}
+                          onCheckedChange={(checked) =>
+                            handlePermissionChange({
+                              userId: vendor.id,
+                              page: page.key,
+                              field: "canView",
+                              value: Boolean(checked),
+                            })
+                          }
+                        />
+                      </td>
+                      <td className="border px-4 py-2 text-center">
+                        <Checkbox
+                          checked={getPermission(vendor, page.key, "canEdit")}
+                          onCheckedChange={(checked) =>
+                            handlePermissionChange({
+                              userId: vendor.id,
+                              page: page.key,
+                              field: "canEdit",
+                              value: Boolean(checked),
+                            })
+                          }
+                        />
+                      </td>
+                    </>
+                  ))}
                 </tr>
-              </thead>
-              <tbody>
-                {pageConstants.map((pg) => {
-                  const perm = permissions.find((p) => p.page === pg.key);
-                  return (
-                    <tr key={pg.key} className="border-b">
-                      <td className="p-2">{pg.name}</td>
-                      <td className="p-2 text-center">
-                        <Switch
-                          checked={perm?.canView || false}
-                          onCheckedChange={(val) =>
-                            togglePermission(pg.key, "canView", val)
-                          }
-                        />
-                      </td>
-                      <td className="p-2 text-center">
-                        <Switch
-                          checked={perm?.canEdit || false}
-                          onCheckedChange={(val) =>
-                            togglePermission(pg.key, "canEdit", val)
-                          }
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      )}
-
-      {permissions.length > 0 && (
-        <div className="mt-4">
-          <Button onClick={handleUpdatePermissions} disabled={loading}>
-            {loading ? "Saving..." : "Save Permissions"}
-          </Button>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
