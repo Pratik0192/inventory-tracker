@@ -5,10 +5,20 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
+    // const vendors = await prisma.user.findMany({
+    //   where: {
+    //     role: "VENDOR",
+    //   },
+    //   select: {
+    //     id: true,
+    //     name: true,
+    //     phoneNo: true,
+    //     email: true,
+    //     permissions: true
+    //   }
+    // })
+
     const vendors = await prisma.user.findMany({
-      where: {
-        role: "VENDOR",
-      },
       select: {
         id: true,
         name: true,

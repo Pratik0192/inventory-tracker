@@ -10,9 +10,10 @@ type Props = {
   loading: boolean;
   onEdit: (proc: Process) => void;
   onDelete: (proc: Process) => void;
+  canEdit: boolean;
 };
 
-export default function ProcessTable({ processes, loading, onEdit, onDelete }: Props) {
+export default function ProcessTable({ processes, loading, onEdit, onDelete, canEdit }: Props) {
   return (
     <Card className="bg-card text-card-foreground border border-border shadow-md">
       <CardContent className="p-0">
@@ -24,7 +25,9 @@ export default function ProcessTable({ processes, loading, onEdit, onDelete }: P
               <TableHead>Short Form</TableHead>
               <TableHead>Target Days</TableHead>
               <TableHead>Users</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead className="text-center text-foreground">
+                {canEdit && "Actions"}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -38,14 +41,16 @@ export default function ProcessTable({ processes, loading, onEdit, onDelete }: P
                   <TableCell>
                     {proc.concernedDept.map((u) => u.uniqueId).join(", ")}
                   </TableCell>
-                  <TableCell className="text-center space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => onEdit(proc)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => onDelete(proc)}>
-                      Delete
-                    </Button>
-                  </TableCell>
+                  {canEdit && (
+                    <TableCell className="text-center space-x-2">
+                      <Button size="sm" variant="outline" onClick={() => onEdit(proc)}>
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => onDelete(proc)}>
+                        Delete
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (

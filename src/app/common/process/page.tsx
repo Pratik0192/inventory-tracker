@@ -10,6 +10,7 @@ import ProcessTable from "@/components/process/ProcessTable";
 import EditProcessDialog from "@/components/process/EditProcessDialog";
 import DeleteProcessDialog from "@/components/process/DeleteProcessDialog";
 import MultiSelect from "@/components/ui/multi-select";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function ProcessMaster() {
   const [processes, setProcesses] = useState<Process[]>([]);
@@ -24,6 +25,8 @@ export default function ProcessMaster() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
+
+  const { canView, canEdit, loading: permissionsLoading } = usePagePermissions("process_master");
 
   const fetchProcesses = async () => {
     try {
@@ -130,64 +133,75 @@ export default function ProcessMaster() {
     fetchVendors();
   }, []);
 
+  if (permissionsLoading) {
+    return <div className="p-4">Loading permissions...</div>;
+  }
+
+  if (!canView) {
+    return <div className="p-4 text-red-500">You don’t have access to view this page.</div>;
+  }
+
   return (
     <div className="p-4 bg-background text-foreground min-h-screen">
       <h1 className="text-2xl font-semibold mb-4 text-primary">
         Process Master
       </h1>
 
-      <div className="grid md:grid-cols-4 gap-4 mb-4 items-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Name</label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Process Name"
-          />
+      {canEdit && (
+        <div className="grid md:grid-cols-4 gap-4 mb-4 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Process Name"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Short Form</label>
+            <Input
+              value={shortForm}
+              onChange={(e) => setShortForm(e.target.value)}
+              placeholder="Short Form"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Target Days</label>
+            <Input
+              type="number"
+              value={targetDays}
+              onChange={(e) => setTargetDays(Number(e.target.value))}
+              placeholder="Target Days"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">
+              User Unique IDs (comma-separated)
+            </label>
+            <MultiSelect
+              options={vendors.map((v) => ({
+                label: v.name + " (" + v.uniqueId + ")",
+                value: v.uniqueId,
+              }))}
+              selected={userUniqueIds
+                .split(",")
+                .map((id) => id.trim())
+                .filter(Boolean)}
+              onChange={(vals) => setUserUniqueIds(vals.join(","))}
+            />
+          </div>
+          <Button className="h-10" onClick={handleAdd}>
+            Add Process
+          </Button>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Short Form</label>
-          <Input
-            value={shortForm}
-            onChange={(e) => setShortForm(e.target.value)}
-            placeholder="Short Form"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Target Days</label>
-          <Input
-            type="number"
-            value={targetDays}
-            onChange={(e) => setTargetDays(Number(e.target.value))}
-            placeholder="Target Days"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">
-            User Unique IDs (comma-separated)
-          </label>
-          <MultiSelect
-            options={vendors.map((v) => ({
-              label: v.name + " (" + v.uniqueId + ")",
-              value: v.uniqueId,
-            }))}
-            selected={userUniqueIds
-              .split(",")
-              .map((id) => id.trim())
-              .filter(Boolean)}
-            onChange={(vals) => setUserUniqueIds(vals.join(","))}
-          />
-        </div>
-        <Button className="h-10" onClick={handleAdd}>
-          Add Process
-        </Button>
-      </div>
+      )}
 
       <ProcessTable
         processes={processes}
         loading={loading}
         onEdit={openEditDialog}
         onDelete={openDeleteDialog}
+        canEdit={canEdit}
       />
 
       <EditProcessDialog

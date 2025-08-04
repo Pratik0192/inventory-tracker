@@ -2,16 +2,29 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Vendor } from "@/types";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 export default function VendorMaster() {
-
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +40,12 @@ export default function VendorMaster() {
   const [editPhoneNo, setEditPhoneNo] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editAddress, setEditAddress] = useState("");
+
+  const {
+    canView,
+    canEdit,
+    loading: permissionsLoading,
+  } = usePagePermissions("vendor_master");
 
   const fetchVendors = async () => {
     try {
@@ -111,26 +130,54 @@ export default function VendorMaster() {
     fetchVendors();
   }, []);
 
+  if (permissionsLoading) {
+    return <div className="p-4">Loading permissions...</div>;
+  }
+
+  if (!canView) {
+    return (
+      <div className="p-4 text-red-500">
+        You don’t have access to view this page.
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 bg-background text-foreground min-h-screen">
-      <h1 className="text-2xl font-semibold mb-4 text-primary">Vendor Master</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-primary">
+        Vendor Master
+      </h1>
 
       {/* Add Vendor */}
-      <div className="flex flex-wrap gap-4 mb-4 items-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Vendor name" />
+      {canEdit && (
+        <div className="flex flex-wrap gap-4 mb-4 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Vendor name"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Phone</label>
+            <Input
+              value={phoneNo}
+              onChange={(e) => setPhoneNo(e.target.value)}
+              placeholder="Phone number"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Password</label>
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+            />
+          </div>
+          <Button onClick={handleAddVendor}>Add Vendor</Button>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Phone</label>
-          <Input value={phoneNo} onChange={(e) => setPhoneNo(e.target.value)} placeholder="Phone number" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Password</label>
-          <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-        </div>
-        <Button onClick={handleAddVendor}>Add Vendor</Button>
-      </div>
+      )}
 
       {/* Vendor List */}
       <Card className="bg-card border border-border shadow-sm">
@@ -144,7 +191,9 @@ export default function VendorMaster() {
                 <TableHead>Phone</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Address</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                <TableHead className="text-center text-foreground">
+                  {canEdit && "Actions"}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -157,19 +206,32 @@ export default function VendorMaster() {
                     <TableCell>{vendor.phoneNo}</TableCell>
                     <TableCell>{vendor.email || "-"}</TableCell>
                     <TableCell>{vendor.address || "-"}</TableCell>
-                    <TableCell className="text-center space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditDialog(vendor)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => openDeleteDialog(vendor)}>
-                        Delete
-                      </Button>
-                    </TableCell>
+                    {canEdit && (
+                      <TableCell className="text-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(vendor)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => openDeleteDialog(vendor)}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-4 text-muted-foreground"
+                  >
                     {loading ? "Loading..." : "No vendors found."}
                   </TableCell>
                 </TableRow>
@@ -186,10 +248,26 @@ export default function VendorMaster() {
             <DialogTitle>Edit Vendor</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4">
-            <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Name" />
-            <Input value={editPhoneNo} onChange={(e) => setEditPhoneNo(e.target.value)} placeholder="Phone" />
-            <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email (optional)" />
-            <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="Address (optional)" />
+            <Input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Name"
+            />
+            <Input
+              value={editPhoneNo}
+              onChange={(e) => setEditPhoneNo(e.target.value)}
+              placeholder="Phone"
+            />
+            <Input
+              value={editEmail}
+              onChange={(e) => setEditEmail(e.target.value)}
+              placeholder="Email (optional)"
+            />
+            <Input
+              value={editAddress}
+              onChange={(e) => setEditAddress(e.target.value)}
+              placeholder="Address (optional)"
+            />
           </div>
           <DialogFooter className="mt-4">
             <Button onClick={handleUpdateVendor}>Update</Button>
@@ -204,10 +282,14 @@ export default function VendorMaster() {
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
           <p>
-            Are you sure you want to delete <strong>{selectedVendor?.name}</strong>?
+            Are you sure you want to delete{" "}
+            <strong>{selectedVendor?.name}</strong>?
           </p>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteVendor}>
@@ -217,6 +299,5 @@ export default function VendorMaster() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

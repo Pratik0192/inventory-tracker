@@ -21,6 +21,7 @@ import {
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 type ComponentType = {
   id: number;
@@ -48,6 +49,7 @@ export default function ComponentMaster() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedComponent, setSelectedComponent] =
     useState<ComponentType | null>(null);
+  const { canView, canEdit, loading: permissionsLoading } = usePagePermissions("component_master");
 
   const fetchComponents = async () => {
     try {
@@ -147,39 +149,49 @@ export default function ComponentMaster() {
     fetchUnits();
   }, [])
 
+  if (permissionsLoading) {
+    return <div className="p-4">Loading permissions...</div>;
+  }
+
+  if (!canView) {
+    return <div className="p-4 text-red-500">You don’t have access to view this page.</div>;
+  }
+
   return (
     <div className="p-4 bg-background text-foreground min-h-screen">
       <h1 className="text-2xl font-semibold mb-4 text-primary">
         Component Master
       </h1>
 
-      <div className="flex gap-4 mb-4 items-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Component Name</label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter component name"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Unit</label>
-          <select
-            value={quant}
-            onChange={(e) => setQuant(e.target.value)}
-            className="border rounded px-3 py-2 text-sm"
-          >
-            <option value="">Select unit</option>
-            {units.map((unit) => (
-              <option key={unit.id} value={unit.unitname}>
-                {unit.unitname}
-              </option>
-            ))}
-          </select>
-        </div>
+      {canEdit && (
+        <div className="flex gap-4 mb-4 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Component Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter component name"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Unit</label>
+            <select
+              value={quant}
+              onChange={(e) => setQuant(e.target.value)}
+              className="border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Select unit</option>
+              {units.map((unit) => (
+                <option key={unit.id} value={unit.unitname}>
+                  {unit.unitname}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <Button onClick={handleAddComponent}>Add Component</Button>
-      </div>
+          <Button onClick={handleAddComponent}>Add Component</Button>
+        </div>
+      )}
 
       {/* List */}
       <Card className="bg-card text-card-foreground border border-border shadow-md">
@@ -191,7 +203,7 @@ export default function ComponentMaster() {
                 <TableHead className="text-foreground">Name</TableHead>
                 <TableHead className="text-foreground">Unit</TableHead>
                 <TableHead className="text-center text-foreground">
-                  Actions
+                  {canEdit && "Actions"}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -206,22 +218,24 @@ export default function ComponentMaster() {
                     <TableCell className="capitalize">
                       {component.Quant}
                     </TableCell>
-                    <TableCell className="text-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(component)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => openDeleteDialog(component)}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
+                    {canEdit && (
+                      <TableCell className="text-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(component)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => openDeleteDialog(component)}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (

@@ -2,12 +2,26 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { usePagePermissions } from "@/hooks/usePagePermissions";
 
 type Size = {
   id: number;
@@ -17,7 +31,7 @@ type Size = {
 
 export default function SizeMaster() {
   const [sizes, setSizes] = useState<Size[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); 
+  const [loading, setLoading] = useState<boolean>(true);
   const [name, setName] = useState("");
   const [noOfPieces, setNoOfPieces] = useState("");
 
@@ -26,17 +40,22 @@ export default function SizeMaster() {
   const [selectedSize, setSelectedSize] = useState<Size | null>(null);
   const [editName, setEditName] = useState("");
   const [editNoOfPieces, setEditNoOfPieces] = useState("");
+  const {
+    canView,
+    canEdit,
+    loading: permissionsLoading,
+  } = usePagePermissions("size_master");
 
   const fetchSizes = async () => {
     try {
       const res = await api.get("/api/size/get");
-      setSizes(res.data.data || [])
+      setSizes(res.data.data || []);
     } catch (error) {
-      toast.error("Failed to fetch sizes")
+      toast.error("Failed to fetch sizes");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -50,35 +69,34 @@ export default function SizeMaster() {
         setNoOfPieces(pieces.toString());
       }
     }
-  }; 
+  };
 
-  const handleAddSize = async() => {
+  const handleAddSize = async () => {
     if (!name.trim() || !noOfPieces.trim()) {
       toast.error("All fields are required");
       return;
     }
     try {
-
       const match = name.match(/^(\d+)[^\d]?(\d+)$/);
       const formattedName = match ? `${match[1]}x${match[2]}` : name;
 
       const res = await api.post("/api/size/add", {
         name: formattedName,
         noOfPieces: Number(noOfPieces),
-      })
+      });
 
-      toast.success("Size added successfully")
+      toast.success("Size added successfully");
       setName("");
       setNoOfPieces("");
       fetchSizes();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to add size");
     }
-  }
-  
+  };
+
   useEffect(() => {
     fetchSizes();
-  }, [])
+  }, []);
 
   const openEditDialog = (size: Size) => {
     setSelectedSize(size);
@@ -129,30 +147,44 @@ export default function SizeMaster() {
     }
   };
 
+  if (permissionsLoading) {
+    return <div className="p-4">Loading permissions...</div>;
+  }
+
+  if (!canView) {
+    return (
+      <div className="p-4 text-red-500">
+        You don’t have access to view this page.
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 bg-background text-foreground min-h-screen">
       <h1 className="text-2xl font-semibold mb-4 text-primary">Size Master</h1>
 
-      <div className="flex gap-4 mb-4 items-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Size Name</label>
-          <Input 
-            value={name} 
-            onChange={(e) => handleNameChange(e.target.value)} 
-            placeholder="Enter Size name" 
-          />
+      {canEdit && (
+        <div className="flex gap-4 mb-4 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Size Name</label>
+            <Input
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="Enter Size name"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">No. of Pieces</label>
+            <Input
+              type="number"
+              value={noOfPieces}
+              onChange={(e) => setNoOfPieces(e.target.value)}
+              placeholder="e.g. 1, 2, 10"
+            />
+          </div>
+          <Button onClick={handleAddSize}>Add Size</Button>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">No. of Pieces</label>
-          <Input
-            type="number"
-            value={noOfPieces}
-            onChange={(e) => setNoOfPieces(e.target.value)}
-            placeholder="e.g. 1, 2, 10"
-          />
-        </div>
-        <Button onClick={handleAddSize}>Add Size</Button>
-      </div>
+      )}
 
       {/* list */}
       <Card className="bg-card text-card-foreground border border-border shadow-md">
@@ -163,29 +195,50 @@ export default function SizeMaster() {
                 <TableHead className="w-12 text-foreground">#</TableHead>
                 <TableHead className="text-foreground">Name</TableHead>
                 <TableHead className="text-foreground">No. of Pieces</TableHead>
-                <TableHead className="text-foreground text-center">Actions</TableHead>
+                <TableHead className="text-center text-foreground">
+                  {canEdit && "Actions"}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {!loading && sizes.length > 0 ? (
                 sizes.map((size, index) => (
                   <TableRow key={size.id}>
-                    <TableCell className="text-foreground">{index + 1}</TableCell>
-                    <TableCell className="text-foreground">{size.name}</TableCell>
-                    <TableCell className="text-foreground">{size.noOfPieces}</TableCell>
-                    <TableCell className="text-center space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditDialog(size)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => openDeleteDialog(size)}>
-                        Delete
-                      </Button>
-                  </TableCell>
+                    <TableCell className="text-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {size.name}
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {size.noOfPieces}
+                    </TableCell>
+                    {canEdit && (
+                      <TableCell className="text-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(size)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => openDeleteDialog(size)}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                  <TableCell
+                    colSpan={3}
+                    className="text-center py-4 text-muted-foreground"
+                  >
                     {loading ? "Loading..." : "No sizes found."}
                   </TableCell>
                 </TableRow>
@@ -226,13 +279,23 @@ export default function SizeMaster() {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to delete <strong>{selectedSize?.name}</strong>?</p>
+          <p>
+            Are you sure you want to delete{" "}
+            <strong>{selectedSize?.name}</strong>?
+          </p>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteSize}>Delete</Button>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteSize}>
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
